@@ -1,0 +1,34 @@
+{
+  "name": "mochila",
+  "description": "Convenient data storage and retrieval.",
+  "main": "lib/mochila.js",
+  "moduleType": [
+    "globals",
+    "amd",
+    "node",
+    "es6"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "keywords": [
+    "datastore",
+    "data-store",
+    "collection",
+    "map",
+    "storage"
+  ],
+  "authors": [
+    { "name": "David Arvelo", "homepage": "http://davidarvelo.com" }
+  ],
+  "homepage": "http://github.com/darvelo/mochila",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/darvelo/mochila.git"
+  }
+}

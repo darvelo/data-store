@@ -1,0 +1,129 @@
+# Intro
+
+Give your data a place to rest its head. Easy data storage and retrieval, with the ability to use factories.
+
+# Install
+
+**Using bower:**
+
+```bash
+$ bower install mochila --save
+```
+
+Use your favorite flavor in the `dist/` directory. Under AMD it registers the module name: `mochila`. As a global, use: `Mochila`.
+
+**Using npm:**
+
+```bash
+$ npm install mochila --save
+```
+
+Use `var x = require('mochila')` in your code.
+
+# Simple usage examples
+
+```js
+var mochila = new Mochila();
+var monsters = [
+    {
+        id: 'abc-222-xu985',
+        name: 'Mothra'
+    },
+    {
+        id: 'xyz-333-pk254',
+        name: 'Godzilla',
+        stats: {
+            heightFt: 330,
+            weightTons: 60000,
+            fistSizeFt: 36,
+            shoeSizeFt: 74
+        }
+    }
+];
+
+var found;
+
+mochila.addType('monster');
+mochila.load('monster', monsters);
+
+found = mochila.find('monster', 'abc-222-xu985');
+found.name === 'Mothra' // true
+
+found = mochila.find('monster', 'xyz-333-pk254');
+found.name === 'Godzilla' // true
+typeof found.stats // 'object'
+found.stats === monsters[1].stats // false -- `load` does a deep clone when there's no factory
+found.kingOfMonsters // undefined
+
+// loading an object with the id of one already in the database merges the two
+mochila.load('monster', {
+    id: 'xyz-333-pk254',
+    name: 'Gojira',
+    kingOfMonsters: true
+});
+
+found.name === 'Gojira' // true
+found.kingOfMonsters // true
+```
+
+Using factories:
+
+```js
+function Widget(opts) {
+    this.id = opts.id;
+    this.name = opts.title;
+    this.dimensions = opts.dimensions;
+    this.countId = ++count;
+}
+
+// when a factory is registered, its `create` property is passed the object from `load`
+Widget.create = function(opts) {
+    return new this(opts);
+};
+
+var mochila = new Mochila();
+var count = 0;
+var cube = {
+    id: 0,
+    title: 'Cube',
+    isCube: true,
+    dimensions: {
+        width: 10,
+        height: 10,
+        depth: 10,
+    },
+};
+
+var found;
+
+mochila.addType('widget');
+mochila.registerModelFactory('widget', Widget);
+mochila.load('widget', cube);
+
+found = mochila.find('widget', 0);
+
+found instanceof Widget // true
+found.title // undefined
+found.name // 'Cube'
+found.isCube // 'undefined'
+found.countId // 1
+typeof found.dimensions // 'object'
+found.dimensions === cube.dimensions // true -- factory did a shallow copy
+```
+
+**Note:** Make sure your data records each have an `id` property. It's used to store and search records efficiently. `id` can be a number or a string.
+
+# API Reference
+
+{{#module name="mochila"}}
+{{>body~}}
+{{>member-index~}}
+{{>separator~}}
+{{>members~}}
+{{/module}}
+
+* * *
+
+# License
+
+MIT
