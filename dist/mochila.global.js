@@ -4,7 +4,7 @@
 */
 
 /**
-* Creates a new Mochila container, which holds tables of records, accessed by name.
+* Creates a new Mochila container, which holds collections of records, with collections accessed by name.
 *
 * @class
 */
@@ -25,127 +25,162 @@ var Mochila = (function () {
     }
 
     /**
-    * Empty out all data records from each internal model store. All models (but not their factories) are lost.
+    * Remove all models from each collection. All models, if not referenced elsewhere, are lost. All factories registered will remain.
     */
 
     _createClass(Mochila, [{
-        key: 'clear',
-        value: function clear() {
-            for (var type in this._store) {
-                if (this._store.hasOwnProperty(type) && typeof this._store[type] === 'object') {
-                    this._store[type].length = 0;
+        key: 'clearCollections',
+        value: function clearCollections() {
+            for (var name in this._store) {
+                if (this._store.hasOwnProperty(name) && typeof this._store[name] === 'object') {
+                    this._store[name].length = 0;
                 }
             }
         }
 
         /**
-        * Add a storage unit that will contain models of a given named type. It is initialized empty.
+        * Add a named collection that you can load models and objects into. It is initialized empty.
         *
-        * @param {String} type A string name of the internal array representation of model data of a certain type.
+        * @param {String} name The name to be used for the collection.
         */
     }, {
-        key: 'addType',
-        value: function addType(type) {
-            if (this._store[type] !== void 0) {
-                throw new Error('A model type of type "' + type + '" already exists! Cannot add it again.');
+        key: 'addCollection',
+        value: function addCollection(name) {
+            if (this._store[name] !== void 0) {
+                throw new Error('A Mochila collection named "' + name + '" already exists! Cannot add it again.');
             }
 
-            this._store[type] = [];
+            this._store[name] = [];
         }
 
         /**
-        * Returns whether the mochila has that particular type name.
+        * Returns whether the mochila has that particular collection.
         *
-        * @param {String} name Name of the type you're checking to see exists.
-        * @returns {Boolean} `true` if the type name exists in the mochila, `false` if not.
+        * @param {String} name Name of the collection you're checking to see exists.
+        * @returns {Boolean} `true` if the collection exists in the mochila, `false` if not.
         */
     }, {
-        key: 'hasType',
-        value: function hasType(type) {
-            return !!this._store[type];
+        key: 'hasCollection',
+        value: function hasCollection(name) {
+            return !!this._store[name];
         }
 
         /**
-        * Returns the names of all the types the mochila currently holds.
+        * Returns the names of all the collections that have been added.
         *
-        * @returns {Boolean} `true` if the type name exists in the mochila, `false` if not.
+        * @returns {String[]} The names of all the collections that have been added.
         */
     }, {
-        key: 'allTypes',
-        value: function allTypes() {
+        key: 'collectionNames',
+        value: function collectionNames() {
             return Object.keys(this._store);
         }
 
         /**
-        * Keeps a reference of the given model factory internally under the given named type. New models with that named type created from JSON or extended from an existing object-type will be created from this factory.
-        *
-        * @param {String} type A string name representing the model type and its factory type.
-        * @param {Function|Object} factory An existing function, or an object that will create a new object of its type when its `.create()` method is invoked.
+        * Remove all factories from each collection. All factories, if not referenced elsewhere, are lost. All models will remain.
         */
     }, {
-        key: 'registerModelFactory',
-        value: function registerModelFactory(type, factory) {
-            if (this._store[type] === void 0) {
-                throw new Error('There is no model type "' + type + '" in the mochila!');
+        key: 'clearFactories',
+        value: function clearFactories() {
+            for (var name in this._factories) {
+                if (this._factories.hasOwnProperty(name)) {
+                    delete this._factories[name];
+                }
             }
-
-            if (this._factories[type] !== void 0) {
-                throw new Error('There is already a registered model factory of type "' + type + '" in the mochila!');
-            }
-
-            if (typeof factory !== 'function' || typeof factory.create !== 'function') {
-                throw new Error('The model factory of type "' + type + '" you are trying to register is not of the proper datatype!');
-            }
-
-            this._factories[type] = factory;
         }
 
         /**
-        * Create a new model using its factory, or if one doesn't exist, creates a plain object that can be extended by a deep clone of arguments that are objects.
+        *  Remove a factory associated with a collection.
         *
-        * @param {String} type A string name representing the model type and its factory type.
-        * @param {...Object} model Optional. When a factory exists, these are passed to `factory.create()`. When no factory exists, a deep clone is made of each object into the newly-created model.
-        * @return {Object} The new object.
+        * @param {String} name The name of the collection whose factory you want to delete from the mochila.
+        */
+    }, {
+        key: 'removeFactory',
+        value: function removeFactory(name) {
+            if (this._factories.hasOwnProperty(name)) {
+                delete this._factories[name];
+            }
+        }
+
+        /**
+        * Register a factory that the named collection will use to create new models.
+        *
+        * @param {String} name The name of the collection.
+        * @param {Function|Object} factory An existing function, or an object that will create a new object of its type when its `.create()` method is invoked.
+        */
+    }, {
+        key: 'addFactory',
+        value: function addFactory(name, factory) {
+            if (this._store[name] === void 0) {
+                throw new Error('There is no collection named "' + name + '" in the mochila!');
+            }
+
+            if (this._factories[name] !== void 0) {
+                throw new Error('There is already a registered model factory for the collection named "' + name + '" in the mochila!');
+            }
+
+            if (typeof factory !== 'function' || typeof factory.create !== 'function') {
+                throw new Error('The model factory for the mochila collection named "' + name + '" you are trying to register is not of the proper datatype!');
+            }
+
+            this._factories[name] = factory;
+        }
+
+        /**
+        * Create a new model using its factory, passing all arguments, or if a factory doesn't exist, create a plain object that will be extended by a deep copy of all arguments that are objects.
+        *
+        * @param {String} name The name of the collection.
+        * @param {...Object} objs Optional. When a factory exists, these are passed to `factory.create()`. When no factory exists, a deep copy is made of each object into the newly-created model.
+        * @return {Model} The new model.
         */
     }, {
         key: 'createModelOfType',
-        value: function createModelOfType(type) {
-            var factory = this._factories[type],
+        value: function createModelOfType(name) {
+            var factory = this._factories[name],
                 model;
 
-            for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-                args[_key - 1] = arguments[_key];
+            for (var _len = arguments.length, objs = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+                objs[_key - 1] = arguments[_key];
             }
 
             if (!factory) {
                 model = {};
-                this._mergeObject.apply(this, _toConsumableArray([model].concat(args)));
+                this._mergeObject.apply(this, _toConsumableArray([model].concat(objs)));
             } else {
-                model = factory.create.apply(factory, args);
+                model = factory.create.apply(factory, objs);
             }
 
             return model;
         }
 
         /**
-        * Load new models into the internal data storage unit of the named model type. New models will be created using a previously-registered factory of that type as the base if it exists. If the factory doesn't exist, a plain object is used as the base. The payload can be an object or an array of objects. Each object *MUST* have a property named 'id' that is a Number.
+        * Load models or objects/JSON into the named collection. Models are placed into the collection as is. Objects are passed into the previously-registered factory of the named collection to create new models. If the factory doesn't exist, a model is made from a deep copy of the object. The payload can be an object, model, or an array of objects or models. Each object/model *MUST* have a property named 'id' that is a number or a string. An object or model that has the same `id` as a model in the mochila will have its own properties merged using a deep copy.
         *
-        * @param {String} type A string name representing the model type, and if its factory was registered, its factory type.
-        * @param {Object|Array} payload An object or array of objects to load into internal model storage.
+        * @param {String} name The name of the collection into which the models will be added.
+        * @param {Object|Object[]|Model|Model[]} payload An object or array of objects to use for creating new models, or a model or array of models to be placed into the collection as is. An object or model that has the same `id` as a model in the mochila will have its own properties merged using a deep copy.
         */
     }, {
         key: 'load',
-        value: function load(type, payload) {
+        value: function load(name, payload) {
             var _this = this;
 
-            var modelType = this._store[type];
+            var collection = this._store[name];
+            var factoryType = this._factories[name];
 
-            if (modelType === void 0) {
-                throw new Error('There is no model of type ' + type + ' in the mochila!');
+            if (collection === void 0) {
+                throw new Error('There is no collection named ' + name + ' in the mochila!');
+            }
+
+            if (typeof payload === 'string') {
+                try {
+                    payload = JSON.parse(payload);
+                } catch (e) {
+                    throw new Error('Mochila tried to parse the string you loaded, but it was not JSON!');
+                }
             }
 
             if (typeof payload !== 'object') {
-                throw new Error('Payload for type ' + type + ' was not an object!', payload);
+                throw new Error('Payload for the mochila collection named ' + name + ' was not an object!');
             }
 
             if (!Array.isArray(payload)) {
@@ -157,35 +192,39 @@ var Mochila = (function () {
             }
 
             payload = payload.map(function (obj) {
-                return _this.createModelOfType(type, obj);
+                if (factoryType && obj instanceof factoryType) {
+                    return obj;
+                }
+
+                return _this.createModelOfType(name, obj);
             });
 
-            this._pushModels(modelType, payload);
+            this._pushModels(collection, payload);
         }
 
         /**
-        * Use the containing array to update the properties of an object it contains and notify observers.
+        * Update the properties of an object with those of other objects using a deep copy.
         *
         * @private
         * @param {Object} obj The object you want the following arguments' object properties to be merged into.
-        * @param {...Object} model Optional existing objects to extend from, using a deep clone.
+        * @param {...Object} objs Objects to extend from, using a deep copy.
         */
     }, {
         key: '_mergeObject',
         value: function _mergeObject(obj) {
-            function deepClone(source) {
+            function deepCopy(source) {
                 var i, prop, ret;
 
                 if (Array.isArray(source)) {
                     ret = [];
                     for (i = 0; i < source.length; ++i) {
-                        ret.push(deepClone(source[i]));
+                        ret.push(deepCopy(source[i]));
                     }
                 } else if (typeof source === 'object') {
                     ret = {};
                     for (prop in source) {
                         if (source.hasOwnProperty(prop)) {
-                            ret[prop] = deepClone(source[prop]);
+                            ret[prop] = deepCopy(source[prop]);
                         }
                     }
                 } else {
@@ -201,42 +240,42 @@ var Mochila = (function () {
                 return;
             }
 
-            for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-                args[_key2 - 1] = arguments[_key2];
+            for (var _len2 = arguments.length, objs = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+                objs[_key2 - 1] = arguments[_key2];
             }
 
-            for (i = 0; i < args.length; ++i) {
-                curr = args[i];
+            for (i = 0; i < objs.length; ++i) {
+                curr = objs[i];
 
                 if (typeof curr !== 'object' || Array.isArray(curr)) {
                     continue;
                 }
 
-                // create a deep clone of an object.
+                // create a deep copy of an object.
                 for (prop in curr) {
                     if (curr.hasOwnProperty(prop)) {
-                        obj[prop] = deepClone(curr[prop]);
+                        obj[prop] = deepCopy(curr[prop]);
                     }
                 }
             }
         }
 
         /**
-        * Push new object(s) into the `modelType` data storage unit, such that all elements remain in sorted order by `id`. Objects with ids of those that already exist in the database will be merged, rather than creating a new record.
+        * Insert model(s) into the named collection, such that the collection remains in sorted order by `id`. Models with `id`s of those that already exist in the database will be merged using a deep copy, rather than inserting the model into the collection.
         *
         * @private
-        * @param {String|modelType} type A string name of the internal array representation of model data of a certain type, or the array itself.
-        * @param {Model[]|Model} payload A model or models to insert into the storage unit. Models must already be instances of the proper factory type. The storage unit will remain in sorted order afterward.
+        * @param {String|Collection} name The name of the collection, or the collection itself.
+        * @param {Model|Model[]} payload A model or models to insert into the collection. Models must already be instances of the factory if a factory exists. The collection will remain in sorted order afterward.
         */
     }, {
         key: '_pushModels',
-        value: function _pushModels(type, payload) {
+        value: function _pushModels(name, payload) {
             var _this2 = this;
 
-            var modelType;
+            var collection;
 
             if (typeof payload !== 'object') {
-                throw new Error('Object to be pushed into the mochila for type ' + type + ' was not an object or an array!', payload);
+                throw new Error('Model to be pushed into the mochila collection named ' + name + ' was not an object or an array!', payload);
             }
 
             if (!Array.isArray(payload)) {
@@ -244,35 +283,34 @@ var Mochila = (function () {
             }
 
             if (typeof type === 'string') {
-                modelType = this._store[type];
+                collection = this._store[name];
             } else {
-                modelType = type;
+                collection = name;
             }
 
-            // we need to check for collisions and update those that exist, and insert those that don't.
-            // we also need to be extremely careful not to modify the array while we're searching it.
+            // we need to check for collisions and update those that exist, and insert those that don't
             payload.forEach(function (item) {
                 var foundItem, insertIdx;
-                foundItem = _this2._binarySearch(modelType, item.id);
+                foundItem = _this2._binarySearch(collection, item.id);
 
                 if (foundItem) {
                     _this2._mergeObject(foundItem, item);
                 } else {
-                    insertIdx = _this2._getInsertIndex(modelType, item.id);
-                    modelType.splice(insertIdx, 0, item);
+                    insertIdx = _this2._getInsertIndex(collection, item.id);
+                    collection.splice(insertIdx, 0, item);
                 }
             });
         }
 
         /**
-        * Find the rightmost index in an array (already sorted by `key`), where an object with `value` in its `key` property can be inserted. To determine whether the object's property is less than `value`, the `<` operator is used.
+        * Find the rightmost index in an array already sorted by `key`, where an object with `value` in its `key` property can be inserted. To determine whether the object's property is less than `value`, the `<` operator is used.
         *
         * @private
         * @throws {Error} `value` must be of the same type as that held by `key`, since `<` can't meaningfully compare different types.
         * @param {Array} sortedArray An array that has already been sorted by `key`.
         * @param {String|Number|Date} value The value to compare against the objects' `key`s. Anything that can be compared with `<`.
-        * @param {String} [key=id] The key to search objects by within sortedArray. Defaults to 'id'.
-        * @return {Number} The index where an object (with object[key] === value) can be inserted.
+        * @param {String} [key=id] The key to search objects by within sortedArray.
+        * @return {Number} The rightmost index where an object (with object[key] === value) can be inserted.
         */
     }, {
         key: '_getInsertIndex',
@@ -280,7 +318,7 @@ var Mochila = (function () {
             key = key || 'id';
 
             if (value === void 0) {
-                throw new Error('The value for getting insert index was undefined!');
+                throw new Error('Mochila: The value for getting insert index was undefined!');
             }
 
             if (sortedArray.length === 0) {
@@ -289,7 +327,7 @@ var Mochila = (function () {
 
             // values of different types can't be meaningfully compared with '<'
             if (typeof sortedArray[0][key] !== typeof value) {
-                throw new Error('The value for getting insert index, "' + value + '" was not of the same type as that held by object key, "' + key + '"!');
+                throw new Error('Mochila: The value for getting insert index, "' + value + '" was not of the same type as that held by object key, "' + key + '"!');
             }
 
             var beg = 0;
@@ -312,12 +350,12 @@ var Mochila = (function () {
         }
 
         /**
-        * Search the internal model array (already sorted by `key`), for an object with `value` in its `key` property. To determine whether one object's property is less than `value`, the `<` operator is used.
+        * Search the given array (already sorted by `key`), for an object with `value` in its `key` property. To determine whether one object's property is less than `value`, the `<` operator is used.
         *
         * @private
         * @param {Array} sortedArray An array that has already been sorted by `key`.
         * @param {String|Number|Date} value The value to compare against the objects' `key`s. Anything that can be compared with `<`.
-        * @param {String} [key=id] The key to search objects by within sortedArray. Defaults to 'id'.
+        * @param {String} [key=id] The key to search objects by within sortedArray.
         * @return {Model|undefined} The found object or `undefined`.
         */
     }, {
@@ -335,17 +373,17 @@ var Mochila = (function () {
         * @private
         * @type Object
         * @property {Array} sortedArray The array passed into _binarySearchIndex().
-        * @property {Number|undefined} idx The index of the object found by _binarySearchIndex, or `undefined`.
+        * @property {Number|undefined} idx The index of the object found by _binarySearchIndex(), or `undefined`.
         */
 
         /**
-        * Search the internal model array (already sorted by `key`), for an object with `value` in its `key` property and return its index. To determine whether one object's property is less than `value`, the `<` operator is used.
+        * Search the given array (already sorted by `key`), for an object with `value` in its `key` property. To determine whether one object's property is less than `value`, the `<` operator is used.
         *
         * @private
         * @param {Array} sortedArray An array that has already been sorted by `key`.
         * @param {String|Number|Date} value The value to compare against the objects' `key`s. Anything that can be compared with `<`.
-        * @param {String} [key=id] The key to search objects by within sortedArray. Defaults to 'id'.
-        * @return {BinarySearchIndexResult} An object with the index of the found object or `undefined`.
+        * @param {String} [key=id] The key to search objects by within sortedArray.
+        * @return {BinarySearchIndexResult} An object with the index of the found object as one of its properties, or `undefined`.
         */
     }, {
         key: '_binarySearchIndex',
@@ -353,7 +391,7 @@ var Mochila = (function () {
             key = key || 'id';
 
             if (value === void 0) {
-                throw new Error('The value for binary searching (for index) was undefined!');
+                throw new Error('Mochila: The value for binary searching (for index) was undefined!');
             }
 
             // values of different types can't be meaningfully compared with '<'
@@ -389,33 +427,29 @@ var Mochila = (function () {
         }
 
         /**
-        * Sort the internal model array by a specified key.
-        * Since the arrays are always sorted by id, searching by id offers significant speedup.
-        * To determine whether one object's property is before another, the `-` operator is used if the `key` holds a Number type, and `<` otherwise.
+        * Sort the given collection by a specified key.
+        * Since collections are always sorted by id, searching by id offers a significant speedup.
+        * To determine whether one object should come before another in sorted order, the `-` operator is used if `key` holds a Number type, and `<` otherwise.
         *
-        * @private
-        * @param {String|modelType} type A string name of the internal array representation of model data of a certain type, or the array itself.
-        * @param {String} [key=id] A key name to sort by. Defaults to 'id'.
-        * @return {Array} A copy of the array, but sorted by `key`.
+        * @param {String} name The name of the collection.
+        * @param {String} [key=id] A key name to sort by.
+        * @return {Array} A copy of the collection, but sorted by `key`.
         */
     }, {
-        key: '_sortBy',
-        value: function _sortBy(type, key) {
+        key: 'sortBy',
+        value: function sortBy(name, key) {
             var sortedArray;
-            var modelType = this._store[type];
 
             key = key || 'id';
 
-            if (typeof type === 'string') {
-                sortedArray = modelType;
-            } else {
-                sortedArray = type;
+            if (typeof name !== 'string') {
+                throw new Error('Mochila tried to sort a collection by key "' + key + '" but was not passed the name of the collection!');
             }
 
-            sortedArray = sortedArray.slice();
+            sortedArray = this._store[name].slice();
 
-            // skip if type === modelType && key === 'id' since it should already be sorted
-            if (sortedArray.length && (type !== modelType || key !== 'id')) {
+            // skip if key === 'id' since it's already sorted
+            if (sortedArray.length && key !== 'id') {
                 if (typeof sortedArray[0][key] === 'number') {
                     sortedArray.sort(function (a, b) {
                         return a[key] - b[key];
@@ -439,86 +473,85 @@ var Mochila = (function () {
         }
 
         /**
-        * Finds all models in modelType with key === val.
-        * `key` is optional; searches `id` key by default if given two arguments.
-        * `val` is optional; returns all models if not given.
+        * Returns all models in a collection whose `key` === `val`. Returns all models if none of the optional parameters are given.
         *
-        * @param {String} type The name of the modelType you wish to search through.
-        * @param {String} [key=id] Optional key to search modelType. Defaults to `id` if not given.
-        * @param {Number|String|Date} val Optional value you're looking for in `key`.
-        * @return {Array} An array with any objects that matched.
+        * @param {String} name The name of the collection.
+        * @param {String} [key=id] The key to search on within models in the collection.
+        * @param {Number|String|Date} [val] The value you're looking for in `key`.
+        * @return {Array} An array with any models that matched the search parameters, or all models if no search parameters were given.
         */
     }, {
         key: 'all',
-        value: function all(type, key, val) {
-            var modelType = this._store[type];
+        value: function all(name, key, val) {
+            var collection = this._store[name];
             var ret;
 
-            if (!modelType) {
-                throw new Error('There is no model of type ' + type + ' in the mochila!');
+            if (!collection) {
+                throw new Error('There is no collection named "' + name + '" in the mochila!');
             }
 
             if (val === void 0) {
                 if (key === void 0) {
-                    return modelType.slice();
+                    return collection.slice();
                 } else {
                     // we're searching by id, leverage the fact that it's already sorted
-                    ret = this._binarySearch(modelType, key);
+                    ret = this._binarySearch(collection, key);
                     return ret ? [ret] : [];
                 }
             }
 
-            return modelType.filter(function (obj) {
+            return collection.filter(function (obj) {
                 return obj[key] === val;
             });
         }
 
         /**
-        * Finds the first model in modelType with key === val.
-        * `key` is optional; searches `id` key by default if given two arguments.
+        * Finds the first model in the named collection with key === val.
         *
-        * @param {String} type The name of the modelType you wish to search through.
-        * @param {String} [key=id] Optional key to search modelType. Defaults to `id` if not given.
+        * @param {String} name The name of the collection you wish to search through.
+        * @param {String} [key=id] The key to search on within models in the collection.
         * @param {Number|String|Date} val The value you're looking for in `key`.
-        * @return {Model|Undefined} The object or undefined if it wasn't found.
+        * @return {Model|undefined} The model or undefined if it wasn't found.
         */
     }, {
         key: 'find',
-        value: function find(type, key, val) {
-            var modelType = this._store[type];
+        value: function find(name, key, val) {
+            var collection = this._store[name];
 
-            if (!modelType) {
-                throw new Error('There is no model of type ' + type + ' in the mochila!');
+            if (!collection) {
+                throw new Error('There is no collection named "' + name + '" in the mochila!');
             }
 
             // we're searching by id; leverage the fact that it's already sorted
             if (val === void 0) {
-                return this._binarySearch(modelType, key);
+                return this._binarySearch(collection, key);
             }
 
-            return modelType.find(function (obj) {
+            return collection.find(function (obj) {
                 return obj[key] === val;
             });
         }
 
         /**
-        * Remove a model or models of the given type from internal storage. Uses the models' `id` to find and remove it from the mochila.
+        * Remove a model or models from the named collection. If not referenced elsewhere, they will be lost. Uses the models' `id` to find and remove them.
         *
-        * @param {String} type The name of the modelType you wish to remove from.
-        * @param {Model[]|Model} models A model or array of models you want to remove.
+        * @param {String} name The name of the collection you wish to remove from.
+        * @param {Model|Model[]} models A model or array of models you wish to remove.
+        * @return {Model[]} An array of the models removed from the collection.
         */
     }, {
-        key: 'deleteModels',
-        value: function deleteModels(type, models) {
-            var modelType = this._store[type];
+        key: 'removeModels',
+        value: function removeModels(name, models) {
+            var collection = this._store[name];
+            var deleted = [];
             var i, idx;
 
-            if (!modelType) {
-                throw new Error('There is no model of type ' + type + ' in the mochila!');
+            if (!collection) {
+                throw new Error('There is no collection named "' + name + '" in the mochila!');
             }
 
             if (typeof models !== 'object') {
-                throw new Error('Models passed to deleteModel was neither an object nor an array!');
+                throw new Error('Mochila: Argument passed to deleteModel() was neither an object nor an array!');
             }
 
             if (!Array.isArray(models)) {
@@ -526,25 +559,32 @@ var Mochila = (function () {
             }
 
             for (i = 0; i < models.length; ++i) {
-                idx = this._binarySearchIndex(modelType, models[i].id).idx;
+                idx = this._binarySearchIndex(collection, models[i].id).idx;
                 if (idx !== void 0) {
-                    modelType.splice(idx, 1);
+                    deleted.push(collection.splice(idx, 1)[0]);
                 }
             }
+
+            return deleted;
         }
 
         /**
-        * Delete all models of the given type from internal storage that have `key` === `val`.
+        * Remove all models from the named collection that have `key` === `val`. If not referenced elsewhere, they will be lost.
         *
-        * @param {String} type The name of the modelType you wish to remove models from.
-        * @param {String} key The key to search on all models for a particular value.
-        * @param {Number|String|Date} val The value the key should have in order for the model to be removed.
+        * @param {String} name The name of the collection you wish to search through.
+        * @param {String} [key=id] The key to search on within models in the collection.
+        * @param {Number|String|Date} val The value you're looking for in `key`.
+        * @return {Model[]} An array of the models removed from the collection.
         */
     }, {
-        key: 'seekAndDestroy',
-        value: function seekAndDestroy(type, key, val) {
-            var models = this.all(type, key, val);
-            this.deleteModels(type, models);
+        key: 'removeWhere',
+        value: function removeWhere(name, key, val) {
+            if (key === void 0 && val === void 0) {
+                throw new Error('Mochila cannot removeWhere() without a value given! If you want to clear all models, use clear() instead.');
+            }
+
+            var models = this.all(name, key, val);
+            return this.removeModels(name, models);
         }
     }]);
 
