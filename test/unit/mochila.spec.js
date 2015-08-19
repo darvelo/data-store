@@ -16,14 +16,14 @@ describe('Mochila Prelim Tests', function () {
 
         it('adds a datatype to the store', function () {
             expect(store._store[type]).to.not.exist;
-            expect(store.addType).to.be.a('function');
-            store.addType(type);
+            expect(store.add).to.be.a('function');
+            store.add(type);
             expect(store._store[type]).to.exist;
         });
 
         it('does not allow a datatype to be added twice', function () {
-            expect(store.addType.bind(store, type)).to.not.throw(Error);
-            expect(store.addType.bind(store, type)).to.throw(Error);
+            expect(store.add.bind(store, type)).to.not.throw(Error);
+            expect(store.add.bind(store, type)).to.throw(Error);
         });
     });
 
@@ -49,7 +49,7 @@ describe('Mochila Prelim Tests', function () {
         });
 
         it('fails if one already exists', function () {
-            store.addType(type);
+            store.add(type);
             // register it once
             store.registerModelFactory(type, Factory);
             // try to register it again
@@ -58,13 +58,13 @@ describe('Mochila Prelim Tests', function () {
 
         it('fails if the factory is not correct', function () {
             var bad = function(){};
-            store.addType(type);
+            store.add(type);
             expect(store.registerModelFactory.bind(store, type, 'oops!')).to.throw(Error);
             expect(store.registerModelFactory.bind(store, type, bad)).to.throw(Error);
         });
 
         it('registers a new model factory', function () {
-            store.addType(type);
+            store.add(type);
             expect(store.registerModelFactory.bind(store, type, Factory)).to.not.throw(Error);
             expect(store._factories[type]).to.exist;
             expect(store._factories[type]).to.equal(Factory);
@@ -104,7 +104,7 @@ describe('Mochila Prelim Tests', function () {
             var bad = function(){};
             var model;
 
-            store.addType(type);
+            store.add(type);
             expect(store.registerModelFactory.bind(store, type, Factory)).to.not.throw(Error);
             expect(store._factories[type]).to.exist;
 
@@ -140,7 +140,7 @@ describe('Mochila Prelim Tests', function () {
                 testObject: {one: 1}
             };
 
-            store.addType(type);
+)            store.addType(type);
             expect(store.registerModelFactory.bind(store, type, ShallowData)).to.not.throw(Error);
             expect(store._factories[type]).to.exist;
 
@@ -210,10 +210,10 @@ describe('Mochila', function () {
         // save test time by only using one instance
         store = new Mochila();
 
-        // assumes addType works and _store exists, but the speedup of
+        // assumes add works and _store exists, but the speedup of
         // not having to create and destroy new Mochilas to check is
         // seriously worth this assumption.
-        store.addType(type);
+        store.add(type);
         modelType = store._store[type];
     });
 
@@ -231,7 +231,7 @@ describe('Mochila', function () {
 
         it('adds a new type', function () {
             var type = 'testType2';
-            store.addType(type);
+            store.add(type);
             expect(store._store[type]).to.exist;
             expect(store.all.bind(store, type)).to.not.throw(Error);
             store.all(type).should.exist;
@@ -239,9 +239,9 @@ describe('Mochila', function () {
 
         it('knows if it has a type', function () {
             var newType = 'testType3';
-            store.addType(newType);
-            store.hasType(type).should.be.ok;
-            store.hasType(newType).should.be.ok;
+            store.add(newType);
+            store.has(type).should.be.ok;
+            store.has(newType).should.be.ok;
         });
 
         it('returns the names of all types', function () {
