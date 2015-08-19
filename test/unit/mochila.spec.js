@@ -226,6 +226,7 @@ describe('Mochila', function () {
     describe('working with model types', function () {
         beforeEach(function () {
             store.clear();
+            store.clearFactories();
         });
 
         it('adds a new type', function () {
@@ -340,6 +341,7 @@ describe('Mochila', function () {
     describe('adding objects', function () {
         beforeEach(function () {
             store.clear();
+            store.clearFactories();
         });
 
         it('adds a new model', function () {
@@ -763,6 +765,7 @@ describe('Mochila', function () {
     describe('searching for models', function () {
         beforeEach(function () {
             store.clear();
+            store.clearFactories();
         });
 
         it('can find the rightmost index of a matching object', function() {
@@ -1163,6 +1166,7 @@ describe('Mochila', function () {
     describe('deleting models', function () {
         beforeEach(function () {
             store.clear();
+            store.clearFactories();
         });
 
         it('deletes the models given', function () {
