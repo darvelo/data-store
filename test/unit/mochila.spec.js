@@ -45,27 +45,27 @@ describe('Mochila Prelim Tests', function () {
         });
 
         it('fails for a non-existent type', function () {
-            expect(store.registerModelFactory.bind(store, 'noExist', Factory)).to.throw(Error);
+            expect(store.addFactory.bind(store, 'noExist', Factory)).to.throw(Error);
         });
 
         it('fails if one already exists', function () {
             store.add(type);
             // register it once
-            store.registerModelFactory(type, Factory);
+            store.addFactory(type, Factory);
             // try to register it again
-            expect(store.registerModelFactory.bind(store, type, Factory)).to.throw(Error);
+            expect(store.addFactory.bind(store, type, Factory)).to.throw(Error);
         });
 
         it('fails if the factory is not correct', function () {
             var bad = function(){};
             store.add(type);
-            expect(store.registerModelFactory.bind(store, type, 'oops!')).to.throw(Error);
-            expect(store.registerModelFactory.bind(store, type, bad)).to.throw(Error);
+            expect(store.addFactory.bind(store, type, 'oops!')).to.throw(Error);
+            expect(store.addFactory.bind(store, type, bad)).to.throw(Error);
         });
 
         it('registers a new model factory', function () {
             store.add(type);
-            expect(store.registerModelFactory.bind(store, type, Factory)).to.not.throw(Error);
+            expect(store.addFactory.bind(store, type, Factory)).to.not.throw(Error);
             expect(store._factories[type]).to.exist;
             expect(store._factories[type]).to.equal(Factory);
         });
@@ -105,7 +105,7 @@ describe('Mochila Prelim Tests', function () {
             var model;
 
             store.add(type);
-            expect(store.registerModelFactory.bind(store, type, Factory)).to.not.throw(Error);
+            expect(store.addFactory.bind(store, type, Factory)).to.not.throw(Error);
             expect(store._factories[type]).to.exist;
 
             expect(store.createModelOfType).to.be.a('function');
@@ -140,8 +140,8 @@ describe('Mochila Prelim Tests', function () {
                 testObject: {one: 1}
             };
 
-)            store.addType(type);
-            expect(store.registerModelFactory.bind(store, type, ShallowData)).to.not.throw(Error);
+            store.add(type);
+            expect(store.addFactory.bind(store, type, ShallowData)).to.not.throw(Error);
             expect(store._factories[type]).to.exist;
 
             expect(store.createModelOfType).to.be.a('function');
@@ -673,7 +673,7 @@ describe('Mochila', function () {
             retrieved.newAttr.should.equal(duplicate.newAttr);
         });
 
-        it('merges using a deep extend only', function() {
+        it('merges using a deep extend only when not using a factory', function() {
             var retrieved;
             var fill = {
                 id: 'sushi',
