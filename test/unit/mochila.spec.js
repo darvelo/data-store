@@ -204,7 +204,7 @@ describe('Mochila Prelim Tests', function () {
 describe('Mochila', function () {
     var store;
     var type = 'testType';
-    var modelType;
+    var collection;
 
     before(function () {
         // save test time by only using one instance
@@ -214,11 +214,11 @@ describe('Mochila', function () {
         // not having to create and destroy new Mochilas to check is
         // seriously worth this assumption.
         store.add(type);
-        modelType = store._store[type];
+        collection = store._store[type];
     });
 
     after(function () {
-        modelType = null;
+        collection = null;
         store.clear();
         store = null;
     });
@@ -273,7 +273,7 @@ describe('Mochila', function () {
             store.all(type).length.should.equal(0);
         });
 
-        it('sorts a modelType container by a given key', function () {
+        it('sorts a collection container by a given key', function () {
             var sorted;
             var models = [{
                 id: 1,
@@ -298,7 +298,7 @@ describe('Mochila', function () {
             }];
 
             store.load(type, models);
-            modelType.length.should.equal(5);
+            collection.length.should.equal(5);
 
             // returns a sorted array using a given string
             sorted = store.sortBy(type, 'sort');
@@ -870,7 +870,7 @@ describe('Mochila', function () {
             store.load(type, models);
             store.all(type).length.should.equal(5);
 
-            modelType.map(mapFunction).should.deep.equal([[1,10], [2,9], [3,8], [4,7], [5,6]]);
+            collection.map(mapFunction).should.deep.equal([[1,10], [2,9], [3,8], [4,7], [5,6]]);
             store.sortBy(type, 'sort').map(mapFunction).should.deep.equal([[5,6], [4,7], [3, 8], [2, 9], [1,10]]);
         });
     });
@@ -902,33 +902,33 @@ describe('Mochila', function () {
             }];
 
             store.load(type, models);
-            modelType.length.should.equal(models.length);
+            collection.length.should.equal(models.length);
 
             // preliminary checks before actual searching is done
-            expect(store._getInsertIndex.bind(store, modelType)).to.throw(Error);
+            expect(store._getInsertIndex.bind(store, collection)).to.throw(Error);
             expect(store._getInsertIndex([], 1)).to.equal(0);
 
             // searching by `id`
             for (i = 1; i < 6; ++i) {
                 // find rightmost index manually
                 find = void 0;
-                modelType.forEach((obj, idx) => {
+                collection.forEach((obj, idx) => {
                     if (obj.id === i) {
                         find = idx+1;
                     }
                 });
                 expect(find).to.be.a('number');
                 expect(find).to.equal(i);
-                rIndex = store._getInsertIndex(modelType, i);
+                rIndex = store._getInsertIndex(collection, i);
                 expect(rIndex).to.be.a('number');
                 expect(rIndex).to.equal(i);
             }
 
-            expect(store._getInsertIndex(modelType, 0)).to.equal(0);
-            expect(store._getInsertIndex(modelType, 6)).to.equal(modelType.length);
+            expect(store._getInsertIndex(collection, 0)).to.equal(0);
+            expect(store._getInsertIndex(collection, 6)).to.equal(collection.length);
 
             // searching by `sort`
-            newSort = modelType.slice().sort((a, b) => a.sort - b.sort);
+            newSort = collection.slice().sort((a, b) => a.sort - b.sort);
             field = 'sort';
 
             for (i = 6; i < 11; ++i) {
@@ -971,21 +971,21 @@ describe('Mochila', function () {
             }];
 
             store.load(type, models);
-            modelType.length.should.equal(models.length);
+            collection.length.should.equal(models.length);
 
             // preliminary checks before actual searching is done
-            expect(store._getInsertIndex.bind(store, modelType)).to.throw(Error);
+            expect(store._getInsertIndex.bind(store, collection)).to.throw(Error);
             expect(store._getInsertIndex([], 'stringId')).to.equal(0);
 
             // searching by `id`
             for (i = 0; i < testIds.length; ++i) {
-                rIndex = store._getInsertIndex(modelType, testIds[i]);
+                rIndex = store._getInsertIndex(collection, testIds[i]);
                 expect(rIndex).to.be.a('number');
                 expect(rIndex).to.equal(i);
             }
 
             // the value passed in must be of the same type as that held by the key searched
-            expect(store._getInsertIndex.bind(store, modelType, 1)).to.throw(Error);
+            expect(store._getInsertIndex.bind(store, collection, 1)).to.throw(Error);
         });
 
         it('correctly peforms binary search', function () {
@@ -1009,27 +1009,27 @@ describe('Mochila', function () {
             }];
 
             store.load(type, models);
-            modelType.length.should.equal(models.length);
+            collection.length.should.equal(models.length);
 
             // preliminary checks before actual searching is done
-            expect(store._binarySearch.bind(store, modelType)).to.throw(Error);
+            expect(store._binarySearch.bind(store, collection)).to.throw(Error);
             expect(store._binarySearch([], 1)).to.not.exist;
 
             // searching by `id`
             for (i = 1; i < 6; ++i) {
-                find = modelType.filter(obj => obj.id === i);
+                find = collection.filter(obj => obj.id === i);
                 expect(Array.isArray(find)).to.be.ok;
                 expect(find).to.have.length(1);
                 find = find[0];
-                bSearch = store._binarySearch(modelType, i);
+                bSearch = store._binarySearch(collection, i);
                 expect(find).to.equal(bSearch);
             }
 
-            expect(store._binarySearch(modelType, 0)).to.not.exist;
-            expect(store._binarySearch(modelType, 6)).to.not.exist;
+            expect(store._binarySearch(collection, 0)).to.not.exist;
+            expect(store._binarySearch(collection, 6)).to.not.exist;
 
             // searching by `sort`
-            newSort = modelType.slice().sort((a, b) => a.sort - b.sort);
+            newSort = collection.slice().sort((a, b) => a.sort - b.sort);
             field = 'sort';
 
             for (i = 6; i < 11; ++i) {
@@ -1065,21 +1065,21 @@ describe('Mochila', function () {
             searchObjs.sort((a, b) => a.id < b.id ? -1 : 1);
 
             store.load(type, models);
-            modelType.length.should.equal(models.length);
+            collection.length.should.equal(models.length);
 
             // preliminary checks before actual searching is done
-            expect(store._binarySearch.bind(store, modelType)).to.throw(Error);
+            expect(store._binarySearch.bind(store, collection)).to.throw(Error);
             expect(store._binarySearch([], 'stringId')).to.not.exist;
 
             // searching by `id`
             for (i = 0; i < searchObjs.length; ++i) {
-                bSearch = store._binarySearch(modelType, searchObjs[i].id);
+                bSearch = store._binarySearch(collection, searchObjs[i].id);
                 expect(bSearch).to.deep.equal(searchObjs[i]);
-                expect(bSearch).to.equal(modelType[i]);
+                expect(bSearch).to.equal(collection[i]);
             }
 
             // the value passed in must be of the same type as that held by the key searched
-            expect(store._binarySearch(modelType, 1)).to.not.exist;
+            expect(store._binarySearch(collection, 1)).to.not.exist;
         });
 
         it('finds a single model using search criteria', function () {
@@ -1205,9 +1205,9 @@ describe('Mochila', function () {
 
             store.load(type, models);
 
-            modelType.length.should.equal(models.length);
+            collection.length.should.equal(models.length);
 
-            // returns the modelType itself
+            // returns the collection itself
             find = store.all(type);
             expect(find).to.deep.equal(models);
 
@@ -1253,9 +1253,9 @@ describe('Mochila', function () {
 
             store.load(type, models);
 
-            modelType.length.should.equal(models.length);
+            collection.length.should.equal(models.length);
 
-            // returns the modelType itself
+            // returns the collection itself
             find = store.all(type);
             sortedModels = models.slice();
             sortedModels.sort((a, b) => a.id < b.id ? -1 : 1);
@@ -1305,23 +1305,23 @@ describe('Mochila', function () {
             }];
 
             store.load(type, models);
-            modelType.length.should.equal(models.length);
-            modelType.should.deep.equal(models);
+            collection.length.should.equal(models.length);
+            collection.should.deep.equal(models);
 
             // remove a single object
             removed = store.removeModels(type, models[5]);
-            modelType.length.should.equal(models.length-1);
+            collection.length.should.equal(models.length-1);
             removed.should.deep.equal(models.splice(5, 1));
-            modelType.should.deep.equal(models);
-            modelType.length.should.equal(models.length);
+            collection.should.deep.equal(models);
+            collection.length.should.equal(models.length);
 
             // remove multiple objects
             splicedModels = models.splice(1, 3);
-            modelType.length.should.equal(models.length+3);
+            collection.length.should.equal(models.length+3);
             removed = store.removeModels(type, splicedModels);
             removed.should.deep.equal(splicedModels);
-            modelType.should.deep.equal(models);
-            modelType.length.should.equal(models.length);
+            collection.should.deep.equal(models);
+            collection.length.should.equal(models.length);
         });
 
         it('removes models when the id is a string type', function() {
@@ -1341,23 +1341,23 @@ describe('Mochila', function () {
             }];
 
             store.load(type, models);
-            modelType.length.should.equal(models.length);
-            modelType.should.deep.equal(models);
+            collection.length.should.equal(models.length);
+            collection.should.deep.equal(models);
 
             // remove a single object
             removed = store.removeModels(type, models[5]);
-            modelType.length.should.equal(models.length-1);
+            collection.length.should.equal(models.length-1);
             removed.should.deep.equal(models.splice(5, 1));
-            modelType.should.deep.equal(models);
-            modelType.length.should.equal(models.length);
+            collection.should.deep.equal(models);
+            collection.length.should.equal(models.length);
 
             // remove multiple objects
             splicedModels = models.splice(1, 3);
-            modelType.length.should.equal(models.length+3);
+            collection.length.should.equal(models.length+3);
             removed = store.removeModels(type, splicedModels);
             removed.should.deep.equal(splicedModels);
-            modelType.should.deep.equal(models);
-            modelType.length.should.equal(models.length);
+            collection.should.deep.equal(models);
+            collection.length.should.equal(models.length);
         });
 
         it('removes models that have a key equal to a certain value', function () {
@@ -1386,34 +1386,34 @@ describe('Mochila', function () {
             }];
 
             store.load(type, models);
-            modelType.length.should.equal(models.length);
-            modelType.should.deep.equal(models);
+            collection.length.should.equal(models.length);
+            collection.should.deep.equal(models);
 
             // remove a whole set of models whose `id` === 1
             removed = store.removeWhere(type, 1);
-            modelType.length.should.equal(models.length-1);
+            collection.length.should.equal(models.length-1);
             removed.should.deep.equal(models.splice(0, 1));
-            modelType.should.deep.equal(models);
-            modelType.length.should.equal(models.length);
+            collection.should.deep.equal(models);
+            collection.length.should.equal(models.length);
 
             // remove a single model using a named key
             removed = store.removeWhere(type, 'extra', 5);
-            modelType.length.should.equal(models.length-1);
+            collection.length.should.equal(models.length-1);
             removed.should.deep.equal(models.splice(models.length-1, 1));
-            modelType.should.deep.equal(models);
-            modelType.length.should.equal(models.length);
+            collection.should.deep.equal(models);
+            collection.length.should.equal(models.length);
 
             // remove whole sets of models using a named key
             removed = store.removeWhere(type, 'extra', 2);
-            modelType.length.should.equal(models.length-2);
+            collection.length.should.equal(models.length-2);
             removed.should.deep.equal(models.splice(0, 2));
-            modelType.should.deep.equal(models);
-            modelType.length.should.equal(models.length);
+            collection.should.deep.equal(models);
+            collection.length.should.equal(models.length);
             removed = store.removeWhere(type, 'extra', 4);
-            modelType.length.should.equal(models.length-2);
+            collection.length.should.equal(models.length-2);
             removed.should.deep.equal(models.splice(models.length-2, 2));
-            modelType.should.deep.equal(models);
-            modelType.length.should.equal(models.length);
+            collection.should.deep.equal(models);
+            collection.length.should.equal(models.length);
         });
     });
 });
