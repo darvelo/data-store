@@ -16,14 +16,14 @@ describe('Mochila Prelim Tests', function () {
 
         it('adds a datatype to the store', function () {
             expect(store._store[type]).to.not.exist;
-            expect(store.add).to.be.a('function');
-            store.add(type);
+            expect(store.addCollection).to.be.a('function');
+            store.addCollection(type);
             expect(store._store[type]).to.exist;
         });
 
         it('does not allow a datatype to be added twice', function () {
-            expect(store.add.bind(store, type)).to.not.throw(Error);
-            expect(store.add.bind(store, type)).to.throw(Error);
+            expect(store.addCollection.bind(store, type)).to.not.throw(Error);
+            expect(store.addCollection.bind(store, type)).to.throw(Error);
         });
     });
 
@@ -49,7 +49,7 @@ describe('Mochila Prelim Tests', function () {
         });
 
         it('fails if one already exists', function () {
-            store.add(type);
+            store.addCollection(type);
             // register it once
             store.addFactory(type, Factory);
             // try to register it again
@@ -58,20 +58,20 @@ describe('Mochila Prelim Tests', function () {
 
         it('fails if the factory is not correct', function () {
             var bad = function(){};
-            store.add(type);
+            store.addCollection(type);
             expect(store.addFactory.bind(store, type, 'oops!')).to.throw(Error);
             expect(store.addFactory.bind(store, type, bad)).to.throw(Error);
         });
 
         it('registers a new model factory', function () {
-            store.add(type);
+            store.addCollection(type);
             expect(store.addFactory.bind(store, type, Factory)).to.not.throw(Error);
             expect(store._factories[type]).to.exist;
             expect(store._factories[type]).to.equal(Factory);
         });
 
         it('removes a factory', function() {
-            store.add(type);
+            store.addCollection(type);
             store.addFactory(type, Factory);
             expect(store._factories[type]).to.exist;
             expect(store._factories[type]).to.equal(Factory);
@@ -85,12 +85,12 @@ describe('Mochila Prelim Tests', function () {
 
             var type2 = 'type2';
 
-            store.add(type);
+            store.addCollection(type);
             store.addFactory(type, Factory);
             expect(store._factories[type]).to.exist;
             expect(store._factories[type]).to.equal(Factory);
 
-            store.add(type2);
+            store.addCollection(type2);
             store.addFactory(type2, Factory2);
             expect(store._factories[type2]).to.exist;
             expect(store._factories[type2]).to.equal(Factory2);
@@ -104,7 +104,7 @@ describe('Mochila Prelim Tests', function () {
             var bad = function(){};
             var model;
 
-            store.add(type);
+            store.addCollection(type);
             expect(store.addFactory.bind(store, type, Factory)).to.not.throw(Error);
             expect(store._factories[type]).to.exist;
 
@@ -140,7 +140,7 @@ describe('Mochila Prelim Tests', function () {
                 testObject: {one: 1}
             };
 
-            store.add(type);
+            store.addCollection(type);
             expect(store.addFactory.bind(store, type, ShallowData)).to.not.throw(Error);
             expect(store._factories[type]).to.exist;
 
@@ -213,25 +213,25 @@ describe('Mochila', function () {
         // assumes add works and _store exists, but the speedup of
         // not having to create and destroy new Mochilas to check is
         // seriously worth this assumption.
-        store.add(type);
+        store.addCollection(type);
         collection = store._store[type];
     });
 
     after(function () {
         collection = null;
-        store.clear();
+        store.clearCollections();
         store = null;
     });
 
     describe('working with model types', function () {
         beforeEach(function () {
-            store.clear();
+            store.clearCollections();
             store.clearFactories();
         });
 
         it('adds a new type', function () {
             var type = 'testType2';
-            store.add(type);
+            store.addCollection(type);
             expect(store._store[type]).to.exist;
             expect(store.all.bind(store, type)).to.not.throw(Error);
             store.all(type).should.exist;
@@ -239,13 +239,13 @@ describe('Mochila', function () {
 
         it('knows if it has a type', function () {
             var newType = 'testType3';
-            store.add(newType);
-            store.has(type).should.be.ok;
-            store.has(newType).should.be.ok;
+            store.addCollection(newType);
+            store.hasCollection(type).should.be.ok;
+            store.hasCollection(newType).should.be.ok;
         });
 
         it('returns the names of all types', function () {
-            store.allTypes().should.deep.equal([
+            store.collectionNames().should.deep.equal([
                 'testType',
                 'testType2',
                 'testType3',
@@ -269,7 +269,7 @@ describe('Mochila', function () {
             };
             store.load(type, model);
             store.all(type).length.should.equal(1);
-            store.clear();
+            store.clearCollections();
             store.all(type).length.should.equal(0);
         });
 
@@ -332,7 +332,7 @@ describe('Mochila', function () {
 
     describe('adding objects', function () {
         beforeEach(function () {
-            store.clear();
+            store.clearCollections();
             store.clearFactories();
         });
 
@@ -877,7 +877,7 @@ describe('Mochila', function () {
 
     describe('searching for models', function () {
         beforeEach(function () {
-            store.clear();
+            store.clearCollections();
             store.clearFactories();
         });
 
@@ -1278,7 +1278,7 @@ describe('Mochila', function () {
 
     describe('removing models', function () {
         beforeEach(function () {
-            store.clear();
+            store.clearCollections();
             store.clearFactories();
         });
 

@@ -43,7 +43,7 @@ var monsters = [
 
 var found;
 
-mochila.add('monster');
+mochila.addCollection('monster');
 mochila.load('monster', monsters);
 
 found = mochila.find('monster', 'abc-222-xu985');
@@ -96,7 +96,7 @@ var cube = {
 
 var found;
 
-mochila.add('widget');
+mochila.addCollection('widget');
 mochila.addFactory('widget', Widget);
 mochila.load('widget', cube);
 
