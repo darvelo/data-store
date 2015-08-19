@@ -1276,14 +1276,14 @@ describe('Mochila', function () {
         });
     });
 
-    describe('deleting models', function () {
+    describe('removing models', function () {
         beforeEach(function () {
             store.clear();
             store.clearFactories();
         });
 
-        it('deletes the models given', function () {
-            var splicedModels;
+        it('removes the models given', function () {
+            var splicedModels, removed;
             var models = [{
                 id: 1,
                 sort: 10
@@ -1309,22 +1309,23 @@ describe('Mochila', function () {
             modelType.should.deep.equal(models);
 
             // remove a single object
-            store.deleteModels(type, models[5]);
+            removed = store.removeModels(type, models[5]);
             modelType.length.should.equal(models.length-1);
-            models.splice(5, 1);
+            removed.should.deep.equal(models.splice(5, 1));
             modelType.should.deep.equal(models);
             modelType.length.should.equal(models.length);
 
             // remove multiple objects
             splicedModels = models.splice(1, 3);
             modelType.length.should.equal(models.length+3);
-            store.deleteModels(type, splicedModels);
+            removed = store.removeModels(type, splicedModels);
+            removed.should.deep.equal(splicedModels);
             modelType.should.deep.equal(models);
             modelType.length.should.equal(models.length);
         });
 
-        it('deletes models when the id is a string type', function() {
-            var splicedModels;
+        it('removes models when the id is a string type', function() {
+            var splicedModels, removed;
             var models = [{
                 id: 'act',
             }, {
@@ -1344,16 +1345,17 @@ describe('Mochila', function () {
             modelType.should.deep.equal(models);
 
             // remove a single object
-            store.deleteModels(type, models[5]);
+            removed = store.removeModels(type, models[5]);
             modelType.length.should.equal(models.length-1);
-            models.splice(5, 1);
+            removed.should.deep.equal(models.splice(5, 1));
             modelType.should.deep.equal(models);
             modelType.length.should.equal(models.length);
 
             // remove multiple objects
             splicedModels = models.splice(1, 3);
             modelType.length.should.equal(models.length+3);
-            store.deleteModels(type, splicedModels);
+            removed = store.removeModels(type, splicedModels);
+            removed.should.deep.equal(splicedModels);
             modelType.should.deep.equal(models);
             modelType.length.should.equal(models.length);
         });
