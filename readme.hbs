@@ -43,7 +43,7 @@ var monsters = [
 
 var found;
 
-mochila.addType('monster');
+mochila.add('monster');
 mochila.load('monster', monsters);
 
 found = mochila.find('monster', 'abc-222-xu985');
@@ -52,7 +52,7 @@ found.name === 'Mothra' // true
 found = mochila.find('monster', 'xyz-333-pk254');
 found.name === 'Godzilla' // true
 typeof found.stats // 'object'
-found.stats === monsters[1].stats // false -- `load` does a deep clone when there's no factory
+found.stats === monsters[1].stats // false -- `load` does a deep clone if no factory
 found.kingOfMonsters // undefined
 
 // loading an object with the id of one already in the database merges the two
@@ -96,8 +96,8 @@ var cube = {
 
 var found;
 
-mochila.addType('widget');
-mochila.registerModelFactory('widget', Widget);
+mochila.add('widget');
+mochila.addFactory('widget', Widget);
 mochila.load('widget', cube);
 
 found = mochila.find('widget', 0);
