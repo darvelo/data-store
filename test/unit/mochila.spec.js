@@ -70,7 +70,37 @@ describe('Mochila Prelim Tests', function () {
             expect(store._factories[type]).to.equal(Factory);
         });
 
-        it('returns an object of that type', function () {
+        it('removes a factory', function() {
+            store.add(type);
+            store.addFactory(type, Factory);
+            expect(store._factories[type]).to.exist;
+            expect(store._factories[type]).to.equal(Factory);
+            store.removeFactory(type);
+            expect(store._factories[type]).to.not.exist;
+        });
+
+        it('removes all factories', function() {
+            function Factory2() { }
+            Factory2.create = function() { return new this(); };
+
+            var type2 = 'type2';
+
+            store.add(type);
+            store.addFactory(type, Factory);
+            expect(store._factories[type]).to.exist;
+            expect(store._factories[type]).to.equal(Factory);
+
+            store.add(type2);
+            store.addFactory(type2, Factory2);
+            expect(store._factories[type2]).to.exist;
+            expect(store._factories[type2]).to.equal(Factory2);
+
+            store.clearFactories(type);
+            expect(store._factories[type]).to.not.exist;
+            expect(store._factories[type2]).to.not.exist;
+        });
+
+        it('returns an object of its factory type', function () {
             var bad = function(){};
             var model;
 
