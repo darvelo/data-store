@@ -360,6 +360,68 @@ describe('Mochila', function () {
             retrieved.title.should.equal(model.title);
         });
 
+        it('adds a new model when it is an instance of its factory', function () {
+            function Factory(obj, obj2) {
+                this.id = obj.id;
+                this.title = obj2.title;
+            }
+
+            Factory.create = function(...args) {
+                return new this(...args);
+            };
+
+            var model;
+
+            store.addFactory(type, Factory);
+
+            model = store.createModelOfType(type, {
+                id: 1,
+            }, {
+                title: 'myTitle',
+            });
+
+            expect(model).to.exist;
+            model.should.have.property('id');
+            model.should.have.property('title');
+            model.id.should.equal(1);
+            model.title.should.equal('myTitle');
+            model.should.be.instanceof(Factory);
+
+            store.all(type).length.should.equal(0);
+            store.load(type, model);
+            store.all(type).length.should.equal(1);
+            store.all(type)[0].should.equal(model);
+        });
+
+        it('adds models when passed as a JSON string', function () {
+            var retrieved;
+            var models = [
+                {
+                    id: 1,
+                    title: 'first'
+                },
+                {
+                    id: 2,
+                    title: 'second'
+                },
+            ];
+
+            models = JSON.stringify(models);
+
+            store.load(type, models);
+            store.all(type).length.should.equal(2);
+
+            retrieved = store.all(type)[0];
+            expect(retrieved).to.exist;
+            retrieved.id.should.equal(1);
+            retrieved.title.should.equal('first');
+
+            retrieved = store.all(type)[1];
+            expect(retrieved).to.exist;
+            retrieved.id.should.equal(2);
+            retrieved.title.should.equal('second');
+        });
+
         it('adds a new model wrapped in an array', function () {
             var retrieved;
             var model = [{
@@ -730,6 +792,65 @@ describe('Mochila', function () {
             retrieved.array.should.not.equal(duplicate.array);
             retrieved.array[2].should.not.equal(duplicate.array[2]);
             retrieved.array[3].should.not.equal(duplicate.array[3]);
+        });
+
+        it('merges when passed a model created by its factory', function () {
+            function Factory(obj, obj2 = {}) {
+                this.id = obj2.id !== void 0 ? obj2.id : obj.id;
+                this.title = obj2.title || obj.title;
+                this.myAttr = obj2.myAttr || obj.myAttr;
+                this.newAttr = obj2.newAttr || obj.newAttr;
+            }
+
+            Factory.create = function(...args) {
+                return new this(...args);
+            };
+
+            var retrieved, duplicate;
+            var fill = {
+                id: 1,
+                title: 'title 1',
+                myAttr: 'old'
+            };
+
+            store.addFactory(type, Factory);
+            store.load(type, fill);
+            store.all(type).length.should.equal(1);
+
+            duplicate = store.createModelOfType(type, {
+                id: 1,
+                title: 'new title',
+            }, {
+                myAttr: 'new',
+                newAttr: 'i am new here!'
+            });
+
+            expect(duplicate).to.exist;
+            duplicate.should.have.property('id');
+            duplicate.should.have.property('title');
+            duplicate.should.have.property('myAttr');
+            duplicate.should.have.property('newAttr');
+            duplicate.id.should.equal(1);
+            duplicate.title.should.equal('new title');
+            duplicate.myAttr.should.equal('new');
+            duplicate.newAttr.should.equal('i am new here!');
+
+            retrieved = store.all(type)[0];
+            expect(retrieved).to.exist;
+            retrieved.id.should.equal(fill.id);
+            retrieved.title.should.equal(fill.title);
+            retrieved.myAttr.should.equal(fill.myAttr);
+            expect(retrieved.newAttr).to.not.exist;
+
+            store.load(type, duplicate);
+            store.all(type).length.should.equal(1);
+
+            retrieved = store.all(type)[0];
+            expect(retrieved).to.exist;
+            retrieved.id.should.equal(duplicate.id);
+            retrieved.title.should.equal(duplicate.title);
+            retrieved.myAttr.should.equal(duplicate.myAttr);
+            retrieved.newAttr.should.equal(duplicate.newAttr);
         });
 
         it('sorts objects based on an arbitrary key', function () {
