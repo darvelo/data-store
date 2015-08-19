@@ -300,19 +300,11 @@ describe('Mochila', function () {
             store.load(type, models);
             modelType.length.should.equal(5);
 
-            // returns a sorted array using a given modelType
-            sorted = store._sortBy(modelType, 'sort');
-            expect(sorted.length).to.equal(models.length);
-            expect(sorted.map(obj => obj.sort)).to.deep.equal([6,7,8,9,10]);
-            sorted = store._sortBy(modelType, 'string');
-            expect(sorted.length).to.equal(models.length);
-            expect(sorted.map(obj => obj.string)).to.deep.equal(['act', 'art', 'bad', 'farm', 'sushi']);
-
             // returns a sorted array using a given string
-            sorted = store._sortBy(type, 'sort');
+            sorted = store.sortBy(type, 'sort');
             expect(sorted.length).to.equal(models.length);
             expect(sorted.map(obj => obj.sort)).to.deep.equal([6,7,8,9,10]);
-            sorted = store._sortBy(type, 'string');
+            sorted = store.sortBy(type, 'string');
             expect(sorted.length).to.equal(models.length);
             expect(sorted.map(obj => obj.string)).to.deep.equal(['act', 'art', 'bad', 'farm', 'sushi']);
         });
@@ -879,7 +871,7 @@ describe('Mochila', function () {
             store.all(type).length.should.equal(5);
 
             modelType.map(mapFunction).should.deep.equal([[1,10], [2,9], [3,8], [4,7], [5,6]]);
-            store._sortBy(type, 'sort').map(mapFunction).should.deep.equal([[5,6], [4,7], [3, 8], [2, 9], [1,10]]);
+            store.sortBy(type, 'sort').map(mapFunction).should.deep.equal([[5,6], [4,7], [3, 8], [2, 9], [1,10]]);
         });
     });
 
