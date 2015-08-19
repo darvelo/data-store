@@ -1360,7 +1360,8 @@ describe('Mochila', function () {
             modelType.length.should.equal(models.length);
         });
 
-        it('deletes models that have a key equal to a certain value', function () {
+        it('removes models that have a key equal to a certain value', function () {
+            var removed;
             var models = [{
                 id: 1,
                 extra: 1,
@@ -1389,28 +1390,28 @@ describe('Mochila', function () {
             modelType.should.deep.equal(models);
 
             // remove a whole set of models whose `id` === 1
-            store.seekAndDestroy(type, 1);
+            removed = store.removeWhere(type, 1);
             modelType.length.should.equal(models.length-1);
-            models.splice(0, 1);
+            removed.should.deep.equal(models.splice(0, 1));
             modelType.should.deep.equal(models);
             modelType.length.should.equal(models.length);
 
             // remove a single model using a named key
-            store.seekAndDestroy(type, 'extra', 5);
+            removed = store.removeWhere(type, 'extra', 5);
             modelType.length.should.equal(models.length-1);
-            models.splice(models.length-1, 1);
+            removed.should.deep.equal(models.splice(models.length-1, 1));
             modelType.should.deep.equal(models);
             modelType.length.should.equal(models.length);
 
             // remove whole sets of models using a named key
-            store.seekAndDestroy(type, 'extra', 2);
+            removed = store.removeWhere(type, 'extra', 2);
             modelType.length.should.equal(models.length-2);
-            models.splice(0, 2);
+            removed.should.deep.equal(models.splice(0, 2));
             modelType.should.deep.equal(models);
             modelType.length.should.equal(models.length);
-            store.seekAndDestroy(type, 'extra', 4);
+            removed = store.removeWhere(type, 'extra', 4);
             modelType.length.should.equal(models.length-2);
-            models.splice(models.length-2, 2);
+            removed.should.deep.equal(models.splice(models.length-2, 2));
             modelType.should.deep.equal(models);
             modelType.length.should.equal(models.length);
         });
